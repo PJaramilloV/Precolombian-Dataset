@@ -31,11 +31,11 @@ This section explains the contents of the present dataset and how to use it.
 
 ### Collection
 
-All original mesh files are present in the ``collection`` directory, as well as randomly sampled point clouds (200k points) from these same meshes.
+All original mesh files are present in the ``precol`` directory in their respective subdirectories ``MD40_bowl``, ``native``, ``SN_bowl``, and ``scanned``.
 
 ### Point Data
 
-Usable point cloud training and evaluation data once created is located in the ``point_data`` directory, separated in 3 subdirectories: ``broken``, ``complete``, and ``repair``. 
+Usable point cloud training and evaluation data once created is located in the ``precol`` directory and once processed, separated in 3 subdirectories: ``broken``, ``complete``, and ``repair``. 
 
 The ``complete`` subdirectory contains copies of the data in ``collection``. Copies of the present files may be found, if so they are copies and have no differences.
 
@@ -43,7 +43,7 @@ The ``broken`` subdirectory contains the input part of the files' namesake count
 
 The ``repair`` subdirectory contains the ground truth to the repair task over the respective counterparts in ```broken``.
 
-The ``validate`` subdirectory contains the undersampled point clouds obtained from the mesh scans of the the Josefina de Cox Museum. These are to be used as input for models as a validation task.
+Ideally you should separate the The mesh scans of the the Josefina de Cox Museum in a different subdirectory like ``validate`` to contain their undersampled point clouds obtained from the process up to the collection generation. These shapes are to be used as input for models as a validation task, as they have no ground truth.
 
 ### Scripts
 
@@ -51,7 +51,7 @@ Useful configurable python scripts for managing this data can be found in the ``
 
 ## How to use
 
-If you plan on making your own repair task utilizing the framework of this dataset then you may follow these steps as a guide. Note: **the working directory is designed to be the same as the directory of the broken, complete, and repair subdirectories**.
+If you plan on making your own repair task utilizing the framework of this dataset then you may follow these steps as a guide. Note: **the working directory is designed to be the root level of the repository**, there are not many safeguards to guarantee good execution in other cases.
 
 1. Obtain point clouds from meshes.
     - 
@@ -61,11 +61,23 @@ If you plan on making your own repair task utilizing the framework of this datas
     python preproc_dataset.py --dataset <path_to_dataset> --points <integer>
     ```
 
+    This script is an altered version from the one present in  the MICCAI 2023 paper [Point Cloud Diffusion Models for Automatic Implant Generation](https://pfriedri.github.io/pcdiff-implant-io/) by Paul Friedrich, Julia Wolleb, Florentin Bieder, Florian M. Thieringer and Philippe C. Cattin. The repository of the original work can be found in [this link](https://github.com/pfriedri/pcdiff-implant).
+
     Other arguments may be used for miscellaneous utility to determine which files to process, how to process them, and other characteristics of the data.
 
     The resulting data from this script will be stored in the same directory as the source in .npy format. 
 
-2. Separate point clouds into input and ground truth
+
+2. Create a train-test split
+
+    This is achieved through the [provided splitting script](scripts/collect_complete.py). This script will copy objects from the dataset directories into a collection directory as well as creating csv files for the split. These csv files aren't final and meant as reference for the next stage for the data augmentation.  
+
+    ```
+    python collect_complete.py 
+    ```
+
+
+3. Separate point clouds into input and ground truth
     - 
     The mechanism to achieve this in this dataset is designed to emulate the defects originating from scanning an object where the fragility of the object prevents a correct scanning of the bottom of the object. This means effectively that [the script provided](scripts/degrade_cloud_bottom.py) performes simple regular cuts at an adjustable height and angle.
 
@@ -83,12 +95,4 @@ If you plan on making your own repair task utilizing the framework of this datas
     The final 2 point clouds are saved under the same name in the dataset's ``broken`` and ``repair`` subdirectories, additionally a copy of the original point cloud is stored in ``complete``.
 
     The script allows to create a mesh counterpart for all parts involved by a marching cubes algorithm.
-
-3. Create a train-test split
-
-    This is achieved through the [provided splitting script](scripts/collect_complete.py).
-
-    ```
-    python collect_complete.py 
-    ```
 
