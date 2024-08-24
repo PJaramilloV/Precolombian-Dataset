@@ -11,7 +11,6 @@ data_dir = ''
 parser = argparse.ArgumentParser()
 parser.add_argument('--multiprocessing', type=eval, default=True, help="set multiprocessing True/False")
 parser.add_argument('--threads', type=int, default=14, help="define number of threads")
-parser.add_argument('--keep_mesh', type=eval, default=False, help="save meshes True/False")
 parser.add_argument('--dataset', type=str, default='', help='directory housing a dataset of complete and broken .obj files')
 parser.add_argument('--datadir', type=str, default='', help='base directory of the dataset, use to override hardcoded variable') 
 parser.add_argument('--points', type=int, default=200000, help='Amount of samples created in the Poisson Disk sampling')
@@ -23,7 +22,6 @@ parser.add_argument('--forced' , type=eval, default=False, help='De do all exist
 opt = parser.parse_args()
 
 multiprocess = opt.multiprocessing
-keep_meshes = opt.keep_mesh
 centered_axis = opt.center
 override = opt.forced
 dataset = opt.dataset
@@ -51,7 +49,7 @@ def process_one(file_obj):
         if os.path.exists(complete_pc_filename) and (not override):
             return
         complete_surf = o3d.io.read_triangle_mesh(file_obj)
-        complete_pc = complete_surf.sample_points_poisson_disk(200000)
+        complete_pc = complete_surf.sample_points_poisson_disk(points)
         complete_pc_np = np.asarray(complete_pc.points)
 
         # normalize pc
