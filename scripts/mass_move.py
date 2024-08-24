@@ -9,6 +9,7 @@ parser.add_argument("source",      help="Source directory")
 parser.add_argument("destination",  help="Destination directory")
 parser.add_argument("-p", "--pattern", type=str, default='', help="Pattern to match files to move")
 parser.add_argument("-e", "--exclude", type=str, default='', help="Pattern to exclude files to move")
+parser.add_argument("-c", "--copy", action="store_true", help="Copy files instead of moving")
 args = parser.parse_args()
 
 src = args.source
@@ -27,21 +28,38 @@ def get_files(src, ptn, exc):
     file_names = [f.replace(src, '').lstrip('/') for f in files]
     return files, file_names
 
-def move_files(files, names, destination):
+def mass_action(files, names, destination):
     for file, name in tqdm(zip(files, names), total=len(files)):
-        shutil.move(file, os.path.join(destination, name))
+        action(file, os.path.join(destination, name))
+
+def action(*args):
+    pass
+
+def move(src, dst):
+    shutil.move(src, dst)
+
+def copy(src, dst):
+    shutil.copy(src, dst)
+
+def clean_path(path):
+    return path.replace('\\', '/')
+
+if args.copy:
+    action = copy
+else:
+    action = move
 
 
 if __name__ == '__main__':
     if not ptn:
         ptn = '*'
 
-    src = src.replace('\\', '/').rstrip('/')
-    dst = dst.replace('\\', '/').rstrip('/')
-    ptn = ptn.replace('\\', '/').lstrip('/')
-    exc = exc.replace('\\', '/').lstrip('/')
+    src = clean_path(src).rstrip('/')
+    dst = clean_path(dst).rstrip('/')
+    ptn = clean_path(ptn).lstrip('/')
+    exc = clean_path(exc).lstrip('/')
 
     files, names = get_files(src, ptn, exc)
-    move_files(files, names, dst)
+    mass_action(files, names, dst)
 
 
